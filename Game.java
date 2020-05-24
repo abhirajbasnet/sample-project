@@ -16,6 +16,7 @@ public class Game
     private ArrayList<Item>playerItem;
     private HashMap<Item, Room > roomItem;
     private int timeCounter;//to count the steps
+    private int number;
         
     /**
      * Create the game and initialise its internal map.
