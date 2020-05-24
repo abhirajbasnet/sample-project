@@ -1,0 +1,15 @@
+#BlueJ class context
+comment0.target=Item
+comment0.text=\n\ Write\ a\ description\ of\ class\ Item\ here.\n\n\ @author\ (your\ name)\n\ @version\ (a\ version\ number\ or\ a\ date)\n
+comment1.params=
+comment1.target=Item()
+comment1.text=\n\ Constructor\ for\ objects\ of\ class\ Item\n
+comment2.params=name\ description\ weight
+comment2.target=Item(java.lang.String,\ java.lang.String,\ int)
+comment3.params=
+comment3.target=java.lang.String\ getItemDescription()
+comment4.params=
+comment4.target=java.lang.String\ getName()
+comment5.params=name
+comment5.target=boolean\ checkName(java.lang.String)
+numComments=6

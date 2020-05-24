@@ -1,0 +1,23 @@
+#BlueJ class context
+comment0.target=Player
+comment0.text=\n\ Write\ a\ description\ of\ class\ Player\ here.\n\n\ @author\ (your\ name)\n\ @version\ (a\ version\ number\ or\ a\ date)\n
+comment1.params=
+comment1.target=Player()
+comment1.text=\n\ Constructor\ for\ objects\ of\ class\ Player\n
+comment2.params=name
+comment2.target=Item\ dropItem(Item)
+comment3.params=
+comment3.target=java.lang.String\ getInventoryString()
+comment4.params=name
+comment4.target=boolean\ playerHasItem(Item)
+comment5.params=name
+comment5.target=Item\ getItem(Item)
+comment6.params=item
+comment6.target=void\ addItemInventory(Item)
+comment7.params=item
+comment7.target=void\ removeItemInventory(Item)
+comment8.params=item
+comment8.target=boolean\ hasItemInventory(Item)
+comment9.params=
+comment9.target=java.lang.String\ printAllInventory()
+numComments=10
