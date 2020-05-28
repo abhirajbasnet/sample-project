@@ -3,12 +3,13 @@ import java.util.HashMap;
 import java.util.ArrayList;
 
 /**
- * Class Room - a room in an adventure game.
- *
- *
+ * This class is part of the "Money Heist" game.
+ * "Money Heist" is a very simple, text based  game.
  * 
- * @author  Michael Kölling and David J. Barnes
- * @version 2016.02.29
+ *It contains the room and the  description of the room needed for the player
+ *
+ * @author  Abhiraj Basnet
+ * @version 2020.05.28
  */
 
 public class Room 
@@ -18,6 +19,9 @@ public class Room
     private boolean isLocked;
     private HashMap<String, Room> exits; // stores exits of this room.
     private ArrayList<Item> roomItem;
+    private ArrayList<Room> roomNames;
+    private HashMap<Room, Item> roomHashMapItem;
+    
 
     /**
      * Create a room described "description". Initially, it has
@@ -32,6 +36,8 @@ public class Room
         this.isLocked=isLocked;
         exits = new HashMap<>();
         roomItem = new ArrayList();
+        roomNames = new ArrayList();
+        roomHashMapItem = new HashMap<>();
         
     }
 
@@ -106,8 +112,6 @@ public class Room
         return exits.get(direction);
     }
     
-    
-    
     /**
      * Method getRoomItem
      *
@@ -123,6 +127,16 @@ public class Room
         }
         return itemToReturn;
     }
+    public Room getRoomName(String stringName){
+    Room nameToReturn = null;
+    for(Room name: roomNames){
+    if(name.getName().equals(stringName)){
+        nameToReturn = name;
+    }
+    }
+return nameToReturn;
+
+}
     
     public void addItemInRoom(Item item)
     {
@@ -142,6 +156,41 @@ public class Room
     public void setLockedStatus(boolean newStatus)
     {
      isLocked = newStatus;
+    }
+    public String getName(){
+    return name;
+    }
+    public boolean checkRoomItem(ArrayList<Item> roomItems)
+    {       
+           //Same issue as above. roomItems is not an Item so you cannot call checkName(). you need for each loop.
+      if (hasroomItem())
+       {
+         for(Item item: roomItems) {
+        if(item.getName().equals(name)){
+              return true;
+            } else
+       {
+            return false;
+        }
+      }
+       }
+    
+          else{
+            return false;
+      }
+         return this.name.equals(name);
+    }
+
+     public boolean hasroomItem() 
+    {
+        
+        
+        if ( listOfItems() != null) {
+            return true;
+        }
+        else{
+            return false;
+        }
     }
     
 }

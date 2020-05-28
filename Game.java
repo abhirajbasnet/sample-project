@@ -1,8 +1,14 @@
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Scanner;
 
 /**
+ *  This class is part of the "Money Heist" game.
+ * "Money Heuist" is a very simple, text based  game.
  *  
+ *  This game is about the heist. 
+ *  The player should heist the money from the bank.
+ *  It is intresting an enjoyable to ply the game
  * 
  * @author  abhiraj
  * @version 2016.02.29
@@ -15,41 +21,44 @@ public class Game
     private Room currentRoom;
     private ArrayList<Item>playerItem;
     private HashMap<Item, Room > roomItem;
-    private int timeCounter;//to count the steps
-    private int number;
+    private int count;//to count the steps
+    String playerName;
+    private Scanner reader = new Scanner(System.in);
+    
+    ArrayList<Item> inventory = new ArrayList<Item>();
+     private int numberOfMoves;
+    private int limitOfMoves;
+    
+     Room basecamp,storage, ammunition,basement,reception, 
+        managerOffice, policeDepartment, securityOffice, moneyVault, carPark;
         
+     
     /**
      * Create the game and initialise its internal map.
      */
     public Game() 
     {
-        long timeStart = System.currentTimeMillis();//use the real time
-        long endTime = timeCounter + (60* 1000);
-        
         createRooms();
         parser = new Parser();
-        player = new Player();
         playerItem = new ArrayList();
-        timeCounter = 0;
-      
+        numberOfMoves = 0;
+        player = new Player(playerName, currentRoom);
         
-    }
+     }
 
     /**
      * Create all the rooms and link their exits together.
      */
     private void createRooms()
     {
-        Room basecamp,storage, ammunition,basement,reception, 
-        managerOffice, policeDepartment, securityOffice, moneyVault, carPark;
-        
+       
         Item blueprint, cellphone, twoWayRadio, drillMachine, duffelBag, guns,faceMask,
         maps, toolHolder, cars, keys, computers, telephones, vaultKey, flashLights,bullet,
-        money, gold, carKey;
+        money, gold, carKey, roomKey;
         
         // create the rooms
         basecamp = new Room("basecamp", "stading in the main room plan", false);
-        storage = new Room("storage", "searching for the equipment in the storage", true);
+        storage = new Room("storage", "searching for the equipment in the storage",true);
         ammunition = new Room("ammunition", "standing in the ammuinition room", false);
         basement= new Room("basement", "standing in the basement", false);
         reception = new Room("reception", "standing in the entrance of the bank", false);
@@ -75,6 +84,9 @@ public class Game
         reception.setExit("east", policeDepartment);
         reception.setExit("west", managerOffice);
         reception.setExit("up", securityOffice);
+        
+        managerOffice.setExit("east", reception);
+        
 
         policeDepartment.setExit("west",reception);
 
@@ -83,8 +95,6 @@ public class Game
 
         moneyVault.setExit("downstair", securityOffice);
         moneyVault.setExit("south", carPark);
-        
-        
         
         //creating the Item
         
@@ -107,10 +117,12 @@ public class Game
         money = new Item ("money", " It helps to buy stuff.!!!", 50);
         gold = new Item ("gold", " Yellow shiny object.!!!", 50);
         carKey = new Item ("carKey", " It helps to run a car.!!!", 50);
+        roomKey = new Item ("key", "hap heart shape", 50);
 
         //insert items 
 
         storage.addItemInRoom(drillMachine);
+        storage.addItemInRoom(keys);
         storage.addItemInRoom(duffelBag);
         ammunition.addItemInRoom(guns);
         ammunition.addItemInRoom(faceMask);
@@ -134,7 +146,6 @@ public class Game
         carPark.addItemInRoom(cars);
         carPark.addItemInRoom(carKey);
         
-        
         currentRoom = basecamp;  // start game outside
     }
     
@@ -144,42 +155,32 @@ public class Game
      */
     public void play() 
     {            
+        
         printWelcome();
 
         // Enter the main command loop.  Here we repeatedly read commands and
         // execute them until the game is over.
         boolean finished = false;
         while (! finished) {
-            long timeStart = System.currentTimeMillis();
             Command command = parser.getCommand();
-            //count delta (current time-start time))
             finished = processCommand(command);
         }
-        for(;;)
-      {
-      try {
-     Thread.sleep(1000);
-     timeCounter ++;
-      } catch (InterruptedException e) {
-     // TODO Auto-generated catch block
-     e.printStackTrace();
+        System.out.println("Thank you for playing " + playerName + "Have a beautiful day ahead.");
     }
-    }
-        
-    
-    }
-   
-
+     
     /**
      * Print out the opening message for the player.
      */
     private void printWelcome()
     {
+        System.out.println("What is your name?");
+        playerName = reader.nextLine();
         System.out.println();
-        System.out.println("Welcome to the Money heist!");
+        System.out.println("Welcome " + " to the Money heist! " + playerName);
         System.out.println("Your main task is to open the vault and get the money.");
         System.out.println("Type 'help' if you need help.");
         System.out.println();
+        chooseLevel();
         System.out.println(currentRoom.getLongDescription());
     }
     
@@ -218,7 +219,7 @@ public class Game
             printInventory();
         }
         else if (commandWord.equals("go")) {
-            goRoom(command);
+            wantToQuit=goRoom(command);
         }
         else if (commandWord.equals("take")) {
             takeItem(command);
@@ -251,7 +252,7 @@ public class Game
     {
         System.out.println("You are lost. You are alone. You wander ");
         //implement random Hints -> massive bonus points
-        System.out.println("around at the university. ");
+        System.out.println("around at the rooms. ");
         System.out.println();
         System.out.println("Your command words are: ");
         parser.showCommands();
@@ -265,17 +266,19 @@ public class Game
     }
     return returnString;
     }
+    
+    
 
     /** 
      * Try to in to one direction. If there is an exit, enter the new
      * room, otherwise print an error message.
      */
-    private void goRoom(Command command) 
+    private boolean goRoom(Command command) 
     {
         if(!command.hasSecondWord()) {
             // if there is no second word, we don't know where to go...
             System.out.println("Go where?");
-            return;
+            return false;
         }
 
         String direction = command.getSecondWord();
@@ -286,17 +289,26 @@ public class Game
         if (nextRoom == null) {
             System.out.println("There is no door!");
         }
-        else {
+        else  {
+          
             if(currentRoom.getLockedStatus()== true){// door is locked
             System.out.println("The door is locked, you need to find key");
             System.out.println(currentRoom.getLongDescription());
             }
-            currentRoom = nextRoom;
-            System.out.println(currentRoom.getLongDescription()+ ".\n" + timeCounter);
-            //System.out.println(currentRoom.printAllItems());
-            //increment the timeCounter
-        }
+            else {
+            currentRoom = nextRoom;  
+            boolean decision = countMove();     
+            
+            System.out.println(currentRoom.getLongDescription());
+       }
+       if(currentRoom== carPark){
+            System.out.println("You Win");
+            return true;
+            }
+        
     }
+    return false;
+}
     
     private void takeItem(Command command) 
     {
@@ -309,15 +321,17 @@ public class Game
         String itemFromCommand = command.getSecondWord();
         Item currentItem = currentRoom.getRoomItem(itemFromCommand);
         
-
         if (currentItem == null) {
             System.out.println("You can't take anything, no?!");
         }
         else {
             currentRoom.removeItemInRoom(currentItem);
-            addItemInventory(currentItem);
+            //player.addItemInventory(currentItem);
+            playerItem.add(currentItem);
+            
             System.out.println(currentRoom.getLongDescription());
         }
+      
     }
     
     private void useItem(Command command) 
@@ -329,22 +343,32 @@ public class Game
         }
 
         String itemFromCommand = command.getSecondWord();
-        Item currentItem = currentRoom.getRoomItem(itemFromCommand);
+        Item currentItem = findPlayerItem(itemFromCommand);
 
         if (currentItem == null) {
             System.out.println("You can't use anything, no?!");
         }
         else {
-            
-            // if(currentRoom.getName().equals("storage") && currentItem){
-            // storage.setLockedStatus("false");}
-            System.out.println("You just used the " + currentItem.getName());
+             if(currentRoom.getName().equals("storage") && currentItem.getName().equals("keys")){
+               currentRoom.setLockedStatus(false);
+               System.out.println(currentRoom.getName());
+               
+               System.out.println(currentRoom.getLockedStatus());
+               System.out.println("You just used the " + currentItem.getName());
+
+            }
+             else {
+             if(currentRoom.getName().equals("moneyVault") && currentItem.getName().equals("vaultKey")){
+               currentRoom.setLockedStatus(false);
+               System.out.println(currentRoom.getName());
+               
+               System.out.println(currentRoom.getLockedStatus());
+               System.out.println("You just used the " + currentItem.getName());
             }
            
-        }
+        }}}
     
-    
-    
+       
     
     /** 
      * "Quit" was entered. Check the rest of the command to see
@@ -372,26 +396,23 @@ public class Game
     
       }
     
-     
-        String itemFromCommand = command.getSecondWord();
-        Item currentItem = currentRoom.getRoomItem(itemFromCommand);
-       System.out.println (currentItem);
-        //getPlayerItem(itemFromCommand);
-     
-
-       if (currentItem==null) {
-      System.out.println("You can't drop anything, no?!");
-       }
-       else {
-        currentRoom.addItemInRoom(currentItem);
-       removeItemInventory(currentItem);
-        System.out.println(currentRoom.getLongDescription());
-        }
-    
-    
+    String itemFromCommand = command.getSecondWord();
+    Item itemToDrop = findPlayerItem(itemFromCommand);    
+        
+      if(itemToDrop == null){
+          System.out.println("You don't have" + " " + itemFromCommand);
+          
+        }else{
+          
+          currentRoom.addItemInRoom(itemToDrop);
+          removeItemInventory(itemToDrop);
+          System.out.println ("You have dropped"+ " " + itemToDrop.getName());
+          
+    }
+         
     }
     
-    public Item getRoomItem(String stringItem){
+    public Item getPlayerItem(String stringItem){
         Item itemToReturn = null;
         for(Item item: playerItem){
             if(item.getName().contains(stringItem)){
@@ -399,5 +420,92 @@ public class Game
             }
         }
         return itemToReturn;
+    }
+    
+    private Item findPlayerItem(String name){
+        Item itemToSearch = null;
+        
+        for (Item item : playerItem) {
+        if (item.getName().equals(name)) {
+            itemToSearch = item;
+        }else{
+            itemToSearch = null;
+        }
+        }
+        
+        if(itemToSearch == null){
+            System.out.println("Item not found");
+        }
+        return itemToSearch;
+    }
+    
+    private void chooseLevel()
+    {
+        // Choosing a level (asking to the user through the terminal)
+        Scanner reader = new Scanner(System.in);
+        System.out.println("Please choose a level : Easy for peasant(0) \n Medium for Smarts (1) \n Hard for masterminds (2)");
+        // Find the chosen level and alter the number of moves accorfing to the chosen one
+        try {
+            switch (reader.nextInt()) {
+            case 0:
+                limitOfMoves = 15;
+                System.out.println("You've chosen the easy way to win ! - Number of moves : " + limitOfMoves);
+                break;
+            case 1:
+                limitOfMoves = 13;
+                System.out.println("You've chosen the medium level :)- Number of moves : " + limitOfMoves);
+                break;
+            case 2:
+                limitOfMoves = 11;
+                System.out.println("It's gonna be hard this way :@  - Number of moves : " + limitOfMoves);
+                break;
+            default:
+                limitOfMoves = 15;
+                System.out.println("Unkown command - Default level : Easy - Number of moves : " + limitOfMoves);
+                break;
+            }
+        } catch(Exception e){
+            limitOfMoves = 15;
+            System.out.println("Unkown command - Default level : Easy - Number of moves : " + limitOfMoves);
+        }
+    }
+    
+    public boolean countMove()
+    {
+    numberOfMoves++;
+
+        // Give some informations concerning the number of moves
+        if (numberOfMoves < limitOfMoves) {
+            System.out.println("Current number of moves : " + numberOfMoves);
+            System.out.println("Moves left : " + (limitOfMoves - numberOfMoves));
+            return false;
+            // Ending the game if the number of moves is reached
+        } else {
+            System.out.println("You have reached the maximum number of moves");
+            System.out.println("By the way, GAME OVER ! ");
+            System.out.println();
+            System.out.println();
+            System.exit(0);
+            return true;
+    
+    }
+    
+    }
+    public int getNumberOfMoves() {
+        return numberOfMoves;
+    }
+
+    /**
+     * @return the limitOfMoves
+     */
+    public int getLimitOfMoves() {
+        return limitOfMoves;
+    }
+    
+    /**
+     * @param limitOfMoves the limitOfMoves to set
+     */
+    public void setLimitOfMoves(int lom) {
+        limitOfMoves = lom;
     }
 }
